@@ -1,11 +1,11 @@
 const { Sequelize, DataTypes } = require('sequelize');
 
 const sequelize = new Sequelize(
-    process.env.DB_NAME || 'postgres',
+    process.env.DB_NAME || 'laba5',
     process.env.DB_USER || 'admin',
     process.env.DB_PASSWORD || 'admin',
     {
-        host: process.env.DB_HOST || 'localhost',
+        host: process.env.DB_HOST || 'postgres',
         port: process.env.DB_PORT || 5432,
         dialect: 'postgres',
         logging: process.env.NODE_ENV === 'development' ? console.log : false,
