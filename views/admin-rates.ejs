@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Редактор курсов валют</h1>
+            <p>Управление персональными курсами относительно USD</p>
+        </div>
+
+        <div class="nav">
+            <a href="/" class="nav-link">Конвертер</a>
+            <a href="/rates" class="nav-link">Курсы валют</a>
+            <a href="/history" class="nav-link">История</a>
+            <a href="/admin/rates" class="nav-link">Редактор</a>
+            <form action="/logout" method="POST" style="display: inline;">
+                <button type="submit" class="nav-link" style="background: none; border: none; cursor: pointer;">
+                    Выйти (<%= user.username %>)
+                </button>
+            </form>
+        </div>
+
+        <% if (message) { %>
+            <div class="<%= message.includes('Ошибка') ? 'error' : 'result' %>">
+                <%= message %>
+            </div>
+        <% } %>
+
+        <!-- Форма для обновления существующих курсов -->
+        <div class="converter-form">
+            <h2>Обновить курс валюты</h2>
+            <form action="/admin/rates/update" method="POST">
+                <div class="form-group">
+                    <label for="currencyCode">Валюта:</label>
+                    <select id="currencyCode" name="currencyCode" required>
+                        <option value="">Выберите валюту</option>
+                        <% Object.keys(rates).forEach(currencyCode => { %>
+                            <option value="<%= currencyCode %>"><%= currencyCode %></option>
+                        <% }); %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="rate">Новый курс к USD:</label>
+                    <input type="number" id="rate" name="rate" step="0.0001" min="0.0001" required 
+                           placeholder="Введите новый курс">
+                </div>
+
+                <button type="submit" class="btn">Обновить курс</button>
+            </form>
+        </div>
+
+        <!-- Форма для добавления новой валюты -->
+        <div class="converter-form">
+            <h2>Добавить новую валюту</h2>
+            <form action="/admin/rates/add" method="POST">
+                <div class="form-group">
+                    <label for="newCurrency">Код валюты (3 буквы):</label>
+                    <input type="text" id="newCurrency" name="newCurrency" required 
+                           placeholder="Например: BRL" maxlength="3" pattern="[A-Za-z]{3}" 
+                           title="3 латинские буквы" style="text-transform: uppercase;">
+                </div>
+
+                <div class="form-group">
+                    <label for="newRate">Курс к USD:</label>
+                    <input type="number" id="newRate" name="newRate" step="0.0001" min="0.0001" required 
+                           placeholder="Введите курс">
+                </div>
+
+                <button type="submit" class="btn">Добавить валюту</button>
+            </form>
+        </div>
+
+        <!-- Форма для удаления валюты -->
+        <div class="converter-form">
+            <h2>Удалить валюту</h2>
+            <form action="/admin/rates/delete" method="POST">
+                <div class="form-group">
+                    <label for="currencyToDelete">Валюта для удаления:</label>
+                    <select id="currencyToDelete" name="currencyToDelete" required>
+                        <option value="">Выберите валюту</option>
+                        <% Object.keys(rates).forEach(currencyCode => { %>
+                            <% if (currencyCode !== 'USD') { %>
+                                <option value="<%= currencyCode %>"><%= currencyCode %></option>
+                            <% } %>
+                        <% }); %>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-danger">Удалить валюту</button>
+            </form>
+        </div>
+
+        <!-- Кнопка сброса -->
+        <div class="converter-form">
+            <h2>Сброс курсов</h2>
+            <form action="/admin/rates/reset" method="POST">
+                <p>Вернуть все курсы к базовым значениям системы</p>
+                <button type="submit" class="btn" style="background: #ffa726;">
+                    Сбросить к базовым курсам
+                </button>
+            </form>
+        </div>
+
+        <!-- Текущие курсы -->
+        <div class="converter-form">
+            <h2>Текущие курсы валют</h2>
+            <table class="rates-table">
+                <thead>
+                    <tr>
+                        <th>Код валюты</th>
+                        <th>Курс к USD</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% Object.entries(rates).forEach(([currencyCode, rate]) => { %>
+                        <tr>
+                            <td><%= currencyCode %></td>
+                            <td><%= parseFloat(rate).toFixed(4) %></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Автоматическое преобразование в верхний регистр
+        document.getElementById('newCurrency').addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase();
+        });
+
+        // Заполнение курса при выборе валюты
+        document.getElementById('currencyCode').addEventListener('change', function(e) {
+            const currencyCode = this.value;
+            if (currencyCode) {
+                const rate = <%= JSON.stringify(rates) %>[currencyCode];
+                document.getElementById('rate').value = rate ? parseFloat(rate).toFixed(4) : '';
+            }
+        });
+    </script>
+</body>
+</html>
