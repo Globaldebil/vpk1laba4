@@ -31,7 +31,6 @@ services:
       - /app/node_modules
     restart: unless-stopped
 
-  # PostgreSQL база данных
   postgres:
     image: postgres:latest
     environment:
